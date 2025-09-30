@@ -363,14 +363,14 @@ class VistaSIGA:
         
         ttk.Label(export_frame, text="Exportar reporte:").pack(side=tk.LEFT, padx=5)
         
-        ttk.Button(export_frame, text="Exportar Reporte Simple (PDF)", 
-           command=self.btn_exportar_pdf_simple).pack(side=tk.LEFT, padx=5)
-
-        ttk.Button(export_frame, text="Exportar Reporte Completo (PDF)", 
-                command=self.btn_exportar_pdf_completo).pack(side=tk.LEFT, padx=5)
-
-        ttk.Button(export_frame, text="Exportar a CSV", 
-                command=self.btn_exportar_csv).pack(side=tk.LEFT, padx=5)
+        ttk.Button(export_frame, text="📄 Reporte Simple (PDF)", 
+                   command=self.btn_exportar_pdf_simple).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(export_frame, text="📊 Reporte Completo (PDF)", 
+                   command=self.btn_exportar_pdf_completo).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(export_frame, text="📑 Exportar CSV", 
+                   command=self.btn_exportar_csv).pack(side=tk.LEFT, padx=5)
 
         ttk.Button(control_frame, text="Estadísticas Generales", 
                    command=self.btn_estadisticas_generales).grid(row=3, column=0, columnspan=2, pady=10)
@@ -390,7 +390,6 @@ class VistaSIGA:
         scrollbar_text.pack(side=tk.RIGHT, fill=tk.Y)
 
     # ==================== MÉTODOS DE EXPORTACIÓN ====================
-
     def btn_exportar_pdf_simple(self):
         """Exporta un reporte simple en PDF con solo la tabla de estudiantes"""
         if self.controlador:
@@ -401,34 +400,103 @@ class VistaSIGA:
             archivo = filedialog.asksaveasfilename(
                 title="Guardar reporte simple en PDF",
                 filetypes=[("Archivo PDF", "*.pdf")],
-                defaultextension=".pdf"
+                defaultextension=".pdf",
+                initialfile=f"Reporte_Simple_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             )
             if archivo:
-                from utils import exportar_pdf
-                exportar_pdf(archivo, df)
-                self.mostrar_mensaje("Éxito", "Reporte simple exportado correctamente.")
- 
-def btn_exportar_csv(self):
-    """Exporta el reporte a CSV"""
-    if self.controlador:
-        df = self.controlador.generar_reporte_estudiantes()
-        if df.empty:
-            self.mostrar_error("Error", "No hay datos para exportar.")
-            return
-        archivo = filedialog.asksaveasfilename(
-            title="Guardar reporte en CSV",
-            filetypes=[("Archivos CSV", "*.csv")],
-            defaultextension=".csv",
-            initialfile=f"Reporte_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        )
-        if archivo:
-            try:
-                df.to_csv(archivo, index=False, encoding="utf-8-sig")
-                self.mostrar_mensaje("Éxito", "Reporte exportado en CSV correctamente.")
-            except Exception as e:
-                self.mostrar_error("Error", f"Error al exportar CSV:\n{str(e)}")
+                try:
+                    from utils import exportar_pdf
+                    exportar_pdf(archivo, df)
+                    self.mostrar_mensaje("Éxito", "Reporte simple exportado correctamente.")
+                except Exception as e:
+                    self.mostrar_error("Error", f"Error al exportar:\n{str(e)}")
 
+    def btn_exportar_pdf_completo(self):
+        """Exporta un reporte completo en PDF con top 3 y gráficas"""
+        if self.controlador:
+            if not self.controlador.modelo.estudiantes:
+                self.mostrar_error("Error", "No hay datos para exportar.")
+                return
+            
+            archivo = filedialog.asksaveasfilename(
+                title="Guardar reporte completo en PDF",
+                filetypes=[("Archivo PDF", "*.pdf")],
+                defaultextension=".pdf",
+                initialfile=f"Reporte_Completo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            )
+            
+            if archivo:
+                try:
+                    from utils import exportar_pdf_completo
+                    
+                    # Ventana de progreso
+                    ventana_progreso = tk.Toplevel(self.root)
+                    ventana_progreso.title("Generando reporte...")
+                    ventana_progreso.geometry("400x150")
+                    ventana_progreso.transient(self.root)
+                    ventana_progreso.grab_set()
+                    
+                    # Centrar ventana
+                    ventana_progreso.update_idletasks()
+                    x = (ventana_progreso.winfo_screenwidth() // 2) - (400 // 2)
+                    y = (ventana_progreso.winfo_screenheight() // 2) - (150 // 2)
+                    ventana_progreso.geometry(f"400x150+{x}+{y}")
+                    
+                    frame_progreso = ttk.Frame(ventana_progreso, padding="20")
+                    frame_progreso.pack(fill=tk.BOTH, expand=True)
+                    
+                    ttk.Label(frame_progreso, 
+                             text="Generando reporte completo...", 
+                             font=('Arial', 12, 'bold')).pack(pady=10)
+                    ttk.Label(frame_progreso, 
+                             text="Esto puede tardar unos momentos.\nGenerando gráficas y tablas...",
+                             justify=tk.CENTER).pack(pady=10)
+                    
+                    progress = ttk.Progressbar(frame_progreso, mode='indeterminate', length=300)
+                    progress.pack(pady=10)
+                    progress.start(10)
+                    
+                    ventana_progreso.update()
+                    
+                    # Generar reporte
+                    exportar_pdf_completo(archivo, self.controlador)
+                    
+                    progress.stop()
+                    ventana_progreso.destroy()
+                    
+                    self.mostrar_mensaje("Éxito", 
+                        f"✅ Reporte completo exportado exitosamente.\n\n"
+                        f"📋 El reporte incluye:\n"
+                        f"  • Estadísticas generales\n"
+                        f"  • Listado completo de estudiantes\n"
+                        f"  • Top 3 estudiantes por curso\n"
+                        f"  • Gráficas estadísticas de cada curso\n\n"
+                        f"📁 Archivo: {os.path.basename(archivo)}")
+                    
+                except Exception as e:
+                    if 'ventana_progreso' in locals():
+                        ventana_progreso.destroy()
+                    self.mostrar_error("Error", f"Error al generar el reporte:\n{str(e)}")
 
+    def btn_exportar_csv(self):
+        """Exporta el reporte a CSV"""
+        if self.controlador:
+            df = self.controlador.generar_reporte_estudiantes()
+            if df.empty:
+                self.mostrar_error("Error", "No hay datos para exportar.")
+                return
+            archivo = filedialog.asksaveasfilename(
+                title="Guardar reporte en CSV",
+                filetypes=[("Archivos CSV", "*.csv")],
+                defaultextension=".csv",
+                initialfile=f"Reporte_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+            )
+            if archivo:
+                try:
+                    df.to_csv(archivo, index=False, encoding="utf-8-sig")
+                    self.mostrar_mensaje("Éxito", "Reporte exportado en CSV correctamente.")
+                except Exception as e:
+                    self.mostrar_error("Error", f"Error al exportar CSV:\n{str(e)}")
         
     def crear_panel_kpis(self, parent):
         kpi_frame = ttk.LabelFrame(parent, text="Estadísticas Generales", padding="10")
@@ -447,98 +515,6 @@ def btn_exportar_csv(self):
         self.lbl_promedio_general.grid(row=0, column=3, padx=20)
 
     # ==================== MÉTODOS DE EVENTOS ====================
-    def btn_exportar_pdf(self):
-        if self.controlador:
-            df = self.controlador.generar_reporte_estudiantes()
-            if df.empty:
-                self.mostrar_error("Error", "No hay datos para exportar.")
-                return
-            archivo = filedialog.asksaveasfilename(
-                title="Guardar reporte en PDF",
-                filetypes=[("Archivo PDF", "*.pdf")],
-                defaultextension=".pdf"
-            )
-            if archivo:
-                from utils import exportar_pdf
-                exportar_pdf(archivo, df)
-                self.mostrar_mensaje("Éxito", "Reporte exportado en PDF correctamente.")
-
-    def btn_exportar_pdf_completo(self):
-        """Exporta un reporte completo en PDF con:
-        - Reporte general de estudiantes
-        - Top 3 por cada curso
-        - Gráficas estadísticas
-        """
-        if self.controlador:
-            if not self.controlador.modelo.estudiantes:
-                self.mostrar_error("Error", "No hay datos para exportar.")
-                return
-            
-            archivo = filedialog.asksaveasfilename(
-                title="Guardar reporte completo en PDF",
-                filetypes=[("Archivo PDF", "*.pdf")],
-                defaultextension=".pdf",
-                initialfile=f"Reporte_Completo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-            )
-            
-            if archivo:
-                try:
-                    from utils import exportar_pdf_completo
-                    from datetime import datetime
-                    
-                    # Mostrar mensaje de progreso
-                    ventana_progreso = tk.Toplevel(self.root)
-                    ventana_progreso.title("Generando reporte...")
-                    ventana_progreso.geometry("400x150")
-                    ventana_progreso.transient(self.root)
-                    ventana_progreso.grab_set()
-                    
-                    # Centrar ventana
-                    ventana_progreso.update_idletasks()
-                    x = (ventana_progreso.winfo_screenwidth() // 2) - (400 // 2)
-                    y = (ventana_progreso.winfo_screenheight() // 2) - (150 // 2)
-                    ventana_progreso.geometry(f"400x150+{x}+{y}")
-                    
-                    frame_progreso = ttk.Frame(ventana_progreso, padding="20")
-                    frame_progreso.pack(fill=tk.BOTH, expand=True)
-                    
-                    ttk.Label(frame_progreso, 
-                            text="Generando reporte completo...", 
-                            font=('Arial', 12, 'bold')).pack(pady=10)
-                    ttk.Label(frame_progreso, 
-                            text="Esto puede tardar unos momentos.\nGenerando gráficas y tablas...",
-                            justify=tk.CENTER).pack(pady=10)
-                    
-                    # Barra de progreso indeterminada
-                    progress = ttk.Progressbar(frame_progreso, mode='indeterminate', length=300)
-                    progress.pack(pady=10)
-                    progress.start(10)
-                    
-                    # Actualizar interfaz
-                    ventana_progreso.update()
-                    
-                    # Generar reporte
-                    exportar_pdf_completo(archivo, self.controlador)
-                    
-                    # Cerrar ventana de progreso
-                    progress.stop()
-                    ventana_progreso.destroy()
-                    
-                    # Mensaje de éxito
-                    self.mostrar_mensaje("Éxito", 
-                        f"Reporte completo exportado exitosamente.\n\n"
-                        f"El reporte incluye:\n"
-                        f"• Estadísticas generales\n"
-                        f"• Listado completo de estudiantes\n"
-                        f"• Top 3 estudiantes por curso\n"
-                        f"• Gráficas estadísticas de cada curso\n\n"
-                        f"Archivo: {os.path.basename(archivo)}")
-                    
-                except Exception as e:
-                    if 'ventana_progreso' in locals():
-                        ventana_progreso.destroy()
-                    self.mostrar_error("Error", f"Error al generar el reporte:\n{str(e)}")
-                
     def btn_crear_estudiante(self):
         if self.controlador:
             documento = self.entry_documento.get().strip()
