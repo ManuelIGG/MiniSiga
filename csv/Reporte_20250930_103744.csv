@@ -1,0 +1,22 @@
+﻿Documento,Nombre,Correo,Curso,Nota
+12345678,Juan Carlos Pérez García,juan.perez@email.com,PROG101,4.5
+12345678,Juan Carlos Pérez García,juan.perez@email.com,MAT201,3.8
+12345678,Juan Carlos Pérez García,juan.perez@email.com,WEB401,4.2
+87654321,María Elena González López,maria.gonzalez@email.com,PROG101,4.8
+87654321,María Elena González López,maria.gonzalez@email.com,BD301,4.7
+87654321,María Elena González López,maria.gonzalez@email.com,ALG501,4.3
+11111111,Carlos Alberto Martínez Silva,carlos.martinez@email.com,PROG101,2.8
+11111111,Carlos Alberto Martínez Silva,carlos.martinez@email.com,WEB401,3.5
+11111111,Carlos Alberto Martínez Silva,carlos.martinez@email.com,MAT201,2.5
+22222222,Ana Sofía Rodríguez Herrera,ana.rodriguez@email.com,MAT201,4.0
+22222222,Ana Sofía Rodríguez Herrera,ana.rodriguez@email.com,BD301,3.2
+22222222,Ana Sofía Rodríguez Herrera,ana.rodriguez@email.com,ING601,4.1
+33333333,Luis Fernando Fernández Castro,luis.fernandez@email.com,PROG101,4.9
+33333333,Luis Fernando Fernández Castro,luis.fernandez@email.com,WEB401,4.6
+33333333,Luis Fernando Fernández Castro,luis.fernandez@email.com,ALG501,4.4
+44444444,Isabella García Ruiz,isabella.garcia@email.com,BD301,3.7
+44444444,Isabella García Ruiz,isabella.garcia@email.com,ING601,3.9
+44444444,Isabella García Ruiz,isabella.garcia@email.com,MAT201,3.3
+55555555,Diego Andrés López Morales,diego.lopez@email.com,PROG101,3.1
+55555555,Diego Andrés López Morales,diego.lopez@email.com,ALG501,2.9
+55555555,Diego Andrés López Morales,diego.lopez@email.com,WEB401,3.4
